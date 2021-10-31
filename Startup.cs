@@ -6,6 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ProductReviews.Repositories.Concrete;
+using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +17,11 @@ namespace ProductReviews
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment _environment;
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
         }
 
         public IConfiguration Configuration { get; }
@@ -26,6 +30,17 @@ namespace ProductReviews
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            /*if(_environment.IsDevelopment())
+            {
+                //services.AddScoped<IProductReviewsRepository.>
+            }
+            else
+            {
+                services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
+            }*/
+
+            services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

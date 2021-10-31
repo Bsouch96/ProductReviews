@@ -1,10 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductReviews.Context;
 using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProductReviews.Repositories.Concrete
@@ -27,7 +25,7 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID);
         }
 
-        public void CreateProductReviewAsync(ProductReviewModel productReviewModel)
+        public void CreateProductReview(ProductReviewModel productReviewModel)
         {
             _context._productReviews.Add(productReviewModel);
         }

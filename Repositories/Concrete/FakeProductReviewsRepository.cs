@@ -1,6 +1,5 @@
 ﻿using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ namespace ProductReviews.Repositories.Concrete
             return await Task.FromResult(_productReviews.AsEnumerable());
         }
 
-        public void CreateProductReviewAsync(ProductReviewModel productReviewModel)
+        public void CreateProductReview(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
@@ -44,9 +43,15 @@ namespace ProductReviews.Repositories.Concrete
             _productReviews.Add(productReviewModel);
         }
 
+        /// <summary>
+        /// This function fakes an update occuring in the Database. It removes the existing and replaces it with the new, updated entity.
+        /// </summary>
+        /// <param name="productReviewModel">The new, updated entity.</param>
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
-            //EF tracks the changes of updates. It pushes them to the DB when SaveChangesAsync() has been called.
+            var productReviewModelOld = _productReviews.FirstOrDefault(r => r.ProductReviewID == productReviewModel.ProductReviewID);
+            _productReviews.Remove(productReviewModelOld);
+            _productReviews.Add(productReviewModel);
         }
 
         public Task SaveChangesAsync()

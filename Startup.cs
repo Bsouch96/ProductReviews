@@ -33,6 +33,8 @@ namespace ProductReviews
         {
             services.AddControllers();
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
             services.AddDbContext<ProductReviews.Context.Context>(options => options.UseSqlServer
             (Configuration.GetConnectionString("ProductReviewsConnectionString")));
 

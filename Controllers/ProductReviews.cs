@@ -51,10 +51,13 @@ namespace ProductReviews.Controllers
             productReviewModel.ProductReviewDate = System.DateTime.Now;
             productReviewModel.ProductReviewIsHidden = false;
 
-            _productReviewsRepository.CreateProductReviewAsync(productReviewModel);
+            _productReviewsRepository.CreateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
             return Ok();
         }
+
+        [HttpPatch("{ID}")]
+        public async Task<ActionResult> UpdateProductReview(int ID, )
     }
 }

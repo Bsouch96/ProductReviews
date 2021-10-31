@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Serialization;
 using ProductReviews.Context;
 using ProductReviews.Repositories.Concrete;
 using ProductReviews.Repositories.Interface;
@@ -37,6 +38,11 @@ namespace ProductReviews
 
             services.AddDbContext<ProductReviews.Context.Context>(options => options.UseSqlServer
             (Configuration.GetConnectionString("ProductReviewsConnectionString")));
+
+            services.AddControllers().AddNewtonsoftJson(j =>
+            {
+                j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            });
 
             /*if(_environment.IsDevelopment())
             {

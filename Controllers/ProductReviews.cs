@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using ProductReviews.DomainModels;
 using ProductReviews.DTOs;
@@ -58,6 +59,24 @@ namespace ProductReviews.Controllers
         }
 
         [HttpPatch("{ID}")]
-        public async Task<ActionResult> UpdateProductReview(int ID, )
+        public async Task<ActionResult> UpdateProductReview(int ID, JsonPatchDocument<ProductReviewUpdateDTO> productReviewUpdatePatch)
+        {
+            var productReviewModel = await _productReviewsRepository.GetProductReviewAsync(ID);
+            if (productReviewModel == null)
+                return NotFound();
+
+            var newproductReviewRequest = _mapper.Map<ProductReviewUpdateDTO>(productReviewModel);
+            productReviewUpdatePatch.ApplyTo(newproductReviewRequest, ModelState);
+
+            if (!TryValidateModel(newproductReviewRequest))
+                return ValidationProblem(ModelState);
+
+            _mapper.Map(newproductReviewRequest, productReviewModel);
+
+            _productReviewsRepository.UpdateProductReview(productReviewModel);
+            await _productReviewsRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }

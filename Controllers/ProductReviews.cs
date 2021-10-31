@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ProductReviews.DomainModels;
 using ProductReviews.DTOs;
 using ProductReviews.Repositories.Interface;
 using System;
@@ -41,6 +42,19 @@ namespace ProductReviews.Controllers
                 return Ok(_mapper.Map<ProductReviewReadDTO>(productReview));
 
             return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
+        {
+            var productReviewModel = _mapper.Map<ProductReviewModel>(productReviewCreateDTO);
+            productReviewModel.ProductReviewDate = System.DateTime.Now;
+            productReviewModel.ProductReviewIsHidden = false;
+
+            _productReviewsRepository.CreateProductReviewAsync(productReviewModel);
+            await _productReviewsRepository.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

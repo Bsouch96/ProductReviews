@@ -9,6 +9,7 @@ namespace ProductReviews.Profiles
         public ProductReviewsProfile()
         {
             CreateMap<ProductReviewModel, ProductReviewReadDTO>();
+            CreateMap<ProductReviewCreateDTO, ProductReviewModel>();
         }
     }
 }

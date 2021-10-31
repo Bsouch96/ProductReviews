@@ -25,9 +25,9 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID);
         }
 
-        public void CreateProductReview(ProductReviewModel productReviewModel)
+        public int CreateProductReview(ProductReviewModel productReviewModel)
         {
-            _context._productReviews.Add(productReviewModel);
+            return _context._productReviews.Add(productReviewModel).Entity.ProductReviewID;
         }
 
         public void UpdateProductReview(ProductReviewModel productReviewModel)

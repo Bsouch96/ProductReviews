@@ -10,7 +10,7 @@ namespace ProductReviews.Repositories.Interface
     {
         public Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync();
         public Task<ProductReviewModel> GetProductReviewAsync(int ID);
-        public void CreateProductReview(ProductReviewModel productReviewModel);
+        public int CreateProductReview(ProductReviewModel productReviewModel);
         public void UpdateProductReview(ProductReviewModel productReviewModel);
         public Task SaveChangesAsync();
     }

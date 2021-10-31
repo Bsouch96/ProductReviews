@@ -35,12 +35,14 @@ namespace ProductReviews.Repositories.Concrete
             return await Task.FromResult(_productReviews.AsEnumerable());
         }
 
-        public void CreateProductReview(ProductReviewModel productReviewModel)
+        public int CreateProductReview(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
 
             _productReviews.Add(productReviewModel);
+
+            return productReviewID;
         }
 
         /// <summary>

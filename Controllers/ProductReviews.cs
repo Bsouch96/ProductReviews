@@ -48,14 +48,17 @@ namespace ProductReviews.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
+            if (productReviewCreateDTO == null)
+                return BadRequest();
+
             var productReviewModel = _mapper.Map<ProductReviewModel>(productReviewCreateDTO);
             productReviewModel.ProductReviewDate = System.DateTime.Now;
             productReviewModel.ProductReviewIsHidden = false;
 
-            _productReviewsRepository.CreateProductReview(productReviewModel);
+            int newProductReviewID = _productReviewsRepository.CreateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
-            return Ok();
+            return CreatedAtAction(nameof(GetProductReview), new { ID = newProductReviewID });
         }
 
         [HttpPatch("{ID}")]

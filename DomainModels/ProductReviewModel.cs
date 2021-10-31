@@ -9,16 +9,16 @@ namespace ProductReviews.DomainModels
     public class ProductReviewModel
     {
         [Key]
-        public int ReviewID { get; set; }
+        public int ProductReviewID { get; set; }
         [Required]
-        public string ReviewHeader { get; set; }
+        public string ProductReviewHeader { get; set; }
         [Required]
-        public string ReviewContent { get; set; }
+        public string ProductReviewContent { get; set; }
         [Required]
-        public DateTime ReviewDate { get; set; }
+        public DateTime ProductReviewDate { get; set; }
         [Required]
         public int ProductID { get; set; }
         [Required]
-        public bool ReviewIsHidden { get; set; }
+        public bool ProductReviewIsHidden { get; set; }
     }
 }

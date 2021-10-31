@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ProductReviews.DomainModels;
+using ProductReviews.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ namespace ProductReviews.Profiles
     {
         public ProductReviewsProfile()
         {
-            //CreateMap
+            CreateMap<ProductReviewModel, ProductReviewReadDTO>();
         }
     }
 }

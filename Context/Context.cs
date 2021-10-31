@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace ProductReviews.Context
 {
-    public class ProductReviewsContext : DbContext
+    public class Context : DbContext
     {
-        private DbSet<ProductReviewModel> _productReviewsContext { get; set; }
-        public ProductReviewsContext(DbContextOptions<ProductReviewsContext> options) : base(options)
+        public DbSet<ProductReviewModel> _productReviews { get; set; }
+        public Context(DbContextOptions<Context> options) : base(options)
         {
 
         }

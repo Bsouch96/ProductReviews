@@ -36,23 +36,19 @@ namespace ProductReviews.Repositories.Concrete
             return await Task.FromResult(_productReviews.AsEnumerable());
         }
 
-        public async Task<ProductReviewModel> CreateProductReviewAsync(ProductReviewModel productReviewModel)
+        public void CreateProductReviewAsync(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
 
             _productReviews.Add(productReviewModel);
-
-            return await Task.FromResult(productReviewModel);
         }
 
-        public Task<ProductReviewModel> UpdateProductReview(ProductReviewModel productReviewModel)
+        public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
-            //var productReviewModelOld = _productReviews.FirstOrDefault(r => r.ProductReviewID == productReviewModel.ProductReviewID);
-
-            return Task.FromResult(productReviewModel);
+            //EF tracks the changes of updates. It pushes them to the DB when SaveChangesAsync() has been called.
         }
-        
+
         public Task SaveChangesAsync()
         {
             return Task.CompletedTask;

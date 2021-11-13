@@ -44,6 +44,8 @@ namespace ProductReviews
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
+            services.AddMemoryCache();
+
             /*if(_environment.IsDevelopment())
             {
                 //services.AddScoped<IProductReviewsRepository.>

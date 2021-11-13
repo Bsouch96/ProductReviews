@@ -15,9 +15,9 @@ namespace ProductReviews.Repositories.Concrete
             _context = context;
         }
 
-        public Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllProductReviewsAsync()
         {
-            throw new NotImplementedException();
+            return await _context._productReviews.ToListAsync();
         }
 
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
@@ -25,9 +25,9 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID);
         }
 
-        public int CreateProductReview(ProductReviewModel productReviewModel)
+        public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
-            return _context._productReviews.Add(productReviewModel).Entity.ProductReviewID;
+            return _context._productReviews.Add(productReviewModel).Entity;
         }
 
         public void UpdateProductReview(ProductReviewModel productReviewModel)

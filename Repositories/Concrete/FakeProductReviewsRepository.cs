@@ -27,22 +27,37 @@ namespace ProductReviews.Repositories.Concrete
             if (ID < 1)
                 return null;
 
-            return await Task.FromResult(_productReviews.FirstOrDefault(d => d.ProductReviewID == ID));
+            ProductReviewModel productReviewModel = _productReviews.FirstOrDefault(d => d.ProductReviewID == ID);
+
+            if (productReviewModel == null)
+                return null;
+
+            ProductReviewModel returnableProductReviewModel = new ProductReviewModel()
+            {
+                ProductID = productReviewModel.ProductID,
+                ProductReviewID = productReviewModel.ProductReviewID,
+                ProductReviewContent = productReviewModel.ProductReviewContent,
+                ProductReviewDate = productReviewModel.ProductReviewDate,
+                ProductReviewHeader = productReviewModel.ProductReviewHeader,
+                ProductReviewIsHidden = productReviewModel.ProductReviewIsHidden
+            };
+
+            return await Task.FromResult(returnableProductReviewModel);
         }
         
-        public async Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllProductReviewsAsync()
         {
-            return await Task.FromResult(_productReviews.AsEnumerable());
+            return await Task.FromResult(new List<ProductReviewModel>(_productReviews));
         }
 
-        public int CreateProductReview(ProductReviewModel productReviewModel)
+        public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
 
             _productReviews.Add(productReviewModel);
 
-            return productReviewID;
+            return productReviewModel;
         }
 
         /// <summary>

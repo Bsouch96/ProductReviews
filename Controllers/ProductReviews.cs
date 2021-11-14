@@ -35,7 +35,6 @@ namespace ProductReviews.Controllers
                 return Ok(_mapper.Map<IEnumerable<ProductReviewModel>>(productReviewValues));
 
             var productReviews = await _productReviewsRepository.GetAllProductReviewsAsync();
-            _memoryCache.Set("ProductReviews", productReviews, GetMemoryCacheEntryOptions());
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
@@ -46,8 +45,7 @@ namespace ProductReviews.Controllers
             if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden)));
 
-            var productReviews = await _productReviewsRepository.GetAllProductReviewsAsync();
-            _memoryCache.Set("ProductReviews", productReviews, GetMemoryCacheEntryOptions());
+            var productReviews = await _productReviewsRepository.GetAllVisibleProductReviewsAsync();
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 

@@ -50,6 +50,11 @@ namespace ProductReviews.Repositories.Concrete
             return await Task.FromResult(new List<ProductReviewModel>(_productReviews));
         }
 
+        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync()
+        {
+            return await Task.FromResult(new List<ProductReviewModel>(_productReviews.Where(pr => !pr.ProductReviewIsHidden)));
+        }
+
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);

@@ -9,6 +9,7 @@ namespace ProductReviews.Repositories.Interface
     public interface IProductReviewsRepository
     {
         public Task<List<ProductReviewModel>> GetAllProductReviewsAsync();
+        public Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync();
         public Task<ProductReviewModel> GetProductReviewAsync(int ID);
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel);
         public void UpdateProductReview(ProductReviewModel productReviewModel);

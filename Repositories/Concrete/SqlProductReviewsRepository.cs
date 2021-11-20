@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
 using System;
@@ -28,18 +29,26 @@ namespace ProductReviews.Repositories.Concrete
 
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
-            return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID);
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
+            return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID) ?? throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist."); ;
         }
 
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The entity to be created cannot be null.", nameof(ArgumentNullException));
+
             return _context._productReviews.Add(productReviewModel).Entity;
         }
 
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+
             _context._productReviews.Update(productReviewModel);
-            //EF tracks the changes of updates. It pushes them to the DB when SaveChangesAsync() has been called.
         }
 
         public async Task SaveChangesAsync()

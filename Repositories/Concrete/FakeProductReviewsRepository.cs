@@ -1,5 +1,6 @@
 ﻿using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,12 +26,12 @@ namespace ProductReviews.Repositories.Concrete
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
             if (ID < 1)
-                return null;
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
 
             ProductReviewModel productReviewModel = _productReviews.FirstOrDefault(d => d.ProductReviewID == ID);
 
             if (productReviewModel == null)
-                return null;
+                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
 
             ProductReviewModel returnableProductReviewModel = new ProductReviewModel()
             {
@@ -71,6 +72,9 @@ namespace ProductReviews.Repositories.Concrete
         /// <param name="productReviewModel">The new, updated entity.</param>
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+
             var productReviewModelOld = _productReviews.FirstOrDefault(r => r.ProductReviewID == productReviewModel.ProductReviewID);
             _productReviews.Remove(productReviewModelOld);
             _productReviews.Add(productReviewModel);

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
+using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.Repositories.Concrete;
 using ProductReviews.Repositories.Interface;
 using System;
@@ -61,6 +62,12 @@ namespace ProductReviews
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+
+            }
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 

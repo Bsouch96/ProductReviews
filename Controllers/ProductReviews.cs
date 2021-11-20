@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.DomainModels;
 using ProductReviews.DTOs;
 using ProductReviews.Repositories.Interface;
@@ -52,6 +53,9 @@ namespace ProductReviews.Controllers
         [HttpGet("{ID}")]
         public async Task<ActionResult<ProductReviewReadDTO>> GetProductReview(int ID)
         {
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
             ProductReviewModel productReview;
             //If cache exists and we find the entity.
             if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
@@ -69,7 +73,7 @@ namespace ProductReviews.Controllers
                     return Ok(_mapper.Map<ProductReviewReadDTO>(productReview));
                 }
 
-                return NotFound();
+                throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist.");
             }
 
             productReview = await _productReviewsRepository.GetProductReviewAsync(ID);
@@ -77,7 +81,7 @@ namespace ProductReviews.Controllers
             if (productReview != null)
                 return Ok(_mapper.Map<ProductReviewReadDTO>(productReview));
 
-            return NotFound();
+            throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist.");
         }
 
         [Route("Create")]
@@ -85,7 +89,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
             if (productReviewCreateDTO == null)
-                return BadRequest();
+                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
 
             ProductReviewModel productReviewModel = _mapper.Map<ProductReviewModel>(productReviewCreateDTO);
             productReviewModel.ProductReviewDate = System.DateTime.Now;
@@ -106,9 +110,15 @@ namespace ProductReviews.Controllers
         [HttpPatch]
         public async Task<ActionResult> UpdateProductReview(int ID, JsonPatchDocument<ProductReviewUpdateDTO> productReviewUpdatePatch)
         {
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
+            if(productReviewUpdatePatch == null)
+                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+
             ProductReviewModel productReviewModel = await _productReviewsRepository.GetProductReviewAsync(ID);
             if (productReviewModel == null)
-                return NotFound();
+                throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist.");
 
             ProductReviewUpdateDTO newproductReviewRequest = _mapper.Map<ProductReviewUpdateDTO>(productReviewModel);
             productReviewUpdatePatch.ApplyTo(newproductReviewRequest, ModelState);
@@ -128,17 +138,6 @@ namespace ProductReviews.Controllers
             }
 
             return NoContent();
-        }
-
-        private MemoryCacheEntryOptions GetMemoryCacheEntryOptions()
-        {
-            return new MemoryCacheEntryOptions()
-            {
-                SlidingExpiration = new TimeSpan(0, 10, 0),
-                AbsoluteExpirationRelativeToNow = new TimeSpan(0, 20, 0),
-                Priority = CacheItemPriority.Normal,
-                Size = 1028
-            };
         }
     }
 }

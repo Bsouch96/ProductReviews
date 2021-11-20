@@ -31,7 +31,7 @@ namespace ProductReviews.Repositories.Concrete
             ProductReviewModel productReviewModel = _productReviews.FirstOrDefault(d => d.ProductReviewID == ID);
 
             if (productReviewModel == null)
-                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
 
             ProductReviewModel returnableProductReviewModel = new ProductReviewModel()
             {
@@ -73,7 +73,7 @@ namespace ProductReviews.Repositories.Concrete
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
-                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
 
             var productReviewModelOld = _productReviews.FirstOrDefault(r => r.ProductReviewID == productReviewModel.ProductReviewID);
             _productReviews.Remove(productReviewModelOld);

@@ -38,7 +38,7 @@ namespace ProductReviews.Repositories.Concrete
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
-                throw new ArgumentNullException("The entity to be created cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review to be created cannot be null.", nameof(ArgumentNullException));
 
             return _context._productReviews.Add(productReviewModel).Entity;
         }
@@ -46,7 +46,7 @@ namespace ProductReviews.Repositories.Concrete
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
-                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
 
             _context._productReviews.Update(productReviewModel);
         }

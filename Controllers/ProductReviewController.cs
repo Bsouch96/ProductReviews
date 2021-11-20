@@ -16,13 +16,13 @@ namespace ProductReviews.Controllers
 {
     [Route("api/ProductReviews")]
     [ApiController]
-    public class ProductReviews : ControllerBase
+    public class ProductReviewController : ControllerBase
     {
         public readonly IProductReviewsRepository _productReviewsRepository;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _memoryCache;
 
-        public ProductReviews(IProductReviewsRepository productReviewsRepository, IMapper mapper, IMemoryCache memoryCache)
+        public ProductReviewController(IProductReviewsRepository productReviewsRepository, IMapper mapper, IMemoryCache memoryCache)
         {
             _productReviewsRepository = productReviewsRepository;
             _mapper = mapper;
@@ -89,7 +89,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
             if (productReviewCreateDTO == null)
-                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
 
             ProductReviewModel productReviewModel = _mapper.Map<ProductReviewModel>(productReviewCreateDTO);
             productReviewModel.ProductReviewDate = System.DateTime.Now;
@@ -114,7 +114,7 @@ namespace ProductReviews.Controllers
                 throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
 
             if(productReviewUpdatePatch == null)
-                throw new ArgumentNullException("The entity used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
 
             ProductReviewModel productReviewModel = await _productReviewsRepository.GetProductReviewAsync(ID);
             if (productReviewModel == null)

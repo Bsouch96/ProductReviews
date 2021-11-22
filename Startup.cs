@@ -44,16 +44,15 @@ namespace ProductReviews
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            /*if(_environment.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
-                //services.AddScoped<IProductReviewsRepository.>
+                services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
             }
             else
             {
-                services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
-            }*/
-
-            services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
+                services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
+                
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -47,7 +47,6 @@ namespace ProductReviews
             else
             {
                 services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
-                
             }
         }
 

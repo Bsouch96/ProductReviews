@@ -32,27 +32,23 @@ namespace ProductReviews
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddDbContext<Context.Context>(options => options.UseSqlServer
-            (Configuration.GetConnectionString("ProductReviewsConnectionString")));
+            services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
+            (Configuration.GetConnectionString("ThamcoConnectionString")));
 
             services.AddControllers().AddNewtonsoftJson(j =>
             {
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            services.AddMemoryCache();
-
-            /*if(_environment.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
-                //services.AddScoped<IProductReviewsRepository.>
+                services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
             }
             else
             {
-                services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
-            }*/
-
-            services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
-            services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
+                services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
+                
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

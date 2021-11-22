@@ -11,8 +11,8 @@ namespace ProductReviews.Repositories.Concrete
 {
     public class SqlProductReviewsRepository : IProductReviewsRepository
     {
-        private readonly Context.Context _context;
-        public SqlProductReviewsRepository(Context.Context context)
+        private readonly Context.DbContext _context;
+        public SqlProductReviewsRepository(Context.DbContext context)
         {
             _context = context;
         }

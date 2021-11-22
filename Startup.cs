@@ -36,8 +36,8 @@ namespace ProductReviews
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddDbContext<ProductReviews.Context.Context>(options => options.UseSqlServer
-            (Configuration.GetConnectionString("ProductReviewsConnectionString")));
+            services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
+            (Configuration.GetConnectionString("ThamcoConnectionString")));
 
             services.AddControllers().AddNewtonsoftJson(j =>
             {

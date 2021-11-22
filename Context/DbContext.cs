@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 
 namespace ProductReviews.Context
 {
-    public class Context : DbContext
+    public class DbContext : Microsoft.EntityFrameworkCore.DbContext
     {
         public DbSet<ProductReviewModel> _productReviews { get; set; }
-        public Context(DbContextOptions<Context> options) : base(options)
+        public DbContext(DbContextOptions<DbContext> options) : base(options)
         {
 
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            
         }
     }
 }

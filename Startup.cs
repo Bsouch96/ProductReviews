@@ -1,20 +1,16 @@
+using Invoices.Helpers.Concrete;
+using Invoices.Helpers.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
-using ProductReviews.Context;
+using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.Repositories.Concrete;
 using ProductReviews.Repositories.Interface;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ProductReviews
 {
@@ -51,17 +47,22 @@ namespace ProductReviews
             else
             {
                 services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
-                
             }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMemoryCacheAutomater memoryCacheAutomater)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+
+            }
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
 
@@ -73,6 +74,8 @@ namespace ProductReviews
             {
                 endpoints.MapControllers();
             });
+
+            memoryCacheAutomater.AutomateCache();
         }
     }
 }

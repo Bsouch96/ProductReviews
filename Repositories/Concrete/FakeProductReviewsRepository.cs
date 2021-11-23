@@ -1,5 +1,6 @@
 ﻿using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,24 +26,44 @@ namespace ProductReviews.Repositories.Concrete
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
             if (ID < 1)
-                return null;
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
 
-            return await Task.FromResult(_productReviews.FirstOrDefault(d => d.ProductReviewID == ID));
+            ProductReviewModel productReviewModel = _productReviews.FirstOrDefault(d => d.ProductReviewID == ID);
+
+            if (productReviewModel == null)
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+
+            ProductReviewModel returnableProductReviewModel = new ProductReviewModel()
+            {
+                ProductID = productReviewModel.ProductID,
+                ProductReviewID = productReviewModel.ProductReviewID,
+                ProductReviewContent = productReviewModel.ProductReviewContent,
+                ProductReviewDate = productReviewModel.ProductReviewDate,
+                ProductReviewHeader = productReviewModel.ProductReviewHeader,
+                ProductReviewIsHidden = productReviewModel.ProductReviewIsHidden
+            };
+
+            return await Task.FromResult(returnableProductReviewModel);
         }
         
-        public async Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllProductReviewsAsync()
         {
-            return await Task.FromResult(_productReviews.AsEnumerable());
+            return await Task.FromResult(new List<ProductReviewModel>(_productReviews));
         }
 
-        public int CreateProductReview(ProductReviewModel productReviewModel)
+        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync()
+        {
+            return await Task.FromResult(new List<ProductReviewModel>(_productReviews.Where(pr => !pr.ProductReviewIsHidden)));
+        }
+
+        public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
 
             _productReviews.Add(productReviewModel);
 
-            return productReviewID;
+            return productReviewModel;
         }
 
         /// <summary>
@@ -51,6 +72,9 @@ namespace ProductReviews.Repositories.Concrete
         /// <param name="productReviewModel">The new, updated entity.</param>
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+
             var productReviewModelOld = _productReviews.FirstOrDefault(r => r.ProductReviewID == productReviewModel.ProductReviewID);
             _productReviews.Remove(productReviewModelOld);
             _productReviews.Add(productReviewModel);

@@ -8,9 +8,10 @@ namespace ProductReviews.Repositories.Interface
 {
     public interface IProductReviewsRepository
     {
-        public Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync();
+        public Task<List<ProductReviewModel>> GetAllProductReviewsAsync();
+        public Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync();
         public Task<ProductReviewModel> GetProductReviewAsync(int ID);
-        public int CreateProductReview(ProductReviewModel productReviewModel);
+        public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel);
         public void UpdateProductReview(ProductReviewModel productReviewModel);
         public Task SaveChangesAsync();
     }

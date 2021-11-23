@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProductReviews.Repositories.Concrete
@@ -15,24 +17,38 @@ namespace ProductReviews.Repositories.Concrete
             _context = context;
         }
 
-        public Task<IEnumerable<ProductReviewModel>> GetAllProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllProductReviewsAsync()
         {
-            throw new NotImplementedException();
+            return await _context._productReviews.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync()
+        {
+            return await _context._productReviews.AsNoTracking().Where(pr => !pr.ProductReviewIsHidden).ToListAsync();
         }
 
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
-            return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID);
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
+            return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID) ?? throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist."); ;
         }
 
-        public int CreateProductReview(ProductReviewModel productReviewModel)
+        public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
-            return _context._productReviews.Add(productReviewModel).Entity.ProductReviewID;
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The product review to be created cannot be null.", nameof(ArgumentNullException));
+
+            return _context._productReviews.Add(productReviewModel).Entity;
         }
 
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
-            //EF tracks the changes of updates. It pushes them to the DB when SaveChangesAsync() has been called.
+            if(productReviewModel == null)
+                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+
+            _context._productReviews.Update(productReviewModel);
         }
 
         public async Task SaveChangesAsync()

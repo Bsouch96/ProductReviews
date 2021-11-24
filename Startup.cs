@@ -3,11 +3,13 @@ using Invoices.Helpers.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using ProductReviews.CustomExceptionMiddleware;
+using ProductReviews.Models;
 using ProductReviews.Repositories.Concrete;
 using ProductReviews.Repositories.Interface;
 using System;
@@ -48,6 +50,9 @@ namespace ProductReviews
             {
                 services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
             }
+
+            services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
+            services.Configure<MemoryCacheModel>(Configuration.GetSection("MemoryCache"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using ProductReviews.CustomExceptionMiddleware;
 using ProductReviews.DomainModels;
 using ProductReviews.DTOs;
+using ProductReviews.Models;
 using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
@@ -18,21 +20,24 @@ namespace ProductReviews.Controllers
     [ApiController]
     public class ProductReviewController : ControllerBase
     {
-        public readonly IProductReviewsRepository _productReviewsRepository;
+        private readonly IProductReviewsRepository _productReviewsRepository;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _memoryCache;
+        private readonly IOptionsMonitor<MemoryCacheModel> _optionsMonitor;
 
-        public ProductReviewController(IProductReviewsRepository productReviewsRepository, IMapper mapper, IMemoryCache memoryCache)
+        public ProductReviewController(IProductReviewsRepository productReviewsRepository, IMapper mapper, IMemoryCache memoryCache,
+            IOptionsMonitor<MemoryCacheModel> optionsMonitor)
         {
             _productReviewsRepository = productReviewsRepository;
             _mapper = mapper;
             _memoryCache = memoryCache;
+            _optionsMonitor = optionsMonitor;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
         {
-            if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewModel>>(productReviewValues));
 
             var productReviews = await _productReviewsRepository.GetAllProductReviewsAsync();
@@ -43,7 +48,7 @@ namespace ProductReviews.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviews()
         {
-            if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden)));
 
             var productReviews = await _productReviewsRepository.GetAllVisibleProductReviewsAsync();
@@ -58,7 +63,7 @@ namespace ProductReviews.Controllers
 
             ProductReviewModel productReview;
             //If cache exists and we find the entity.
-            if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
             {
                 //Return the entity if we find it in the cache.
                 productReview = productReviewValues.Find(pr => pr.ProductReviewID == ID);
@@ -98,7 +103,7 @@ namespace ProductReviews.Controllers
             ProductReviewModel newProductReviewModel = _productReviewsRepository.CreateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
-            if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 productReviewValues.Add(newProductReviewModel);
 
             ProductReviewReadDTO productReviewReadDTO = _mapper.Map<ProductReviewReadDTO>(newProductReviewModel);
@@ -131,7 +136,7 @@ namespace ProductReviews.Controllers
             _productReviewsRepository.UpdateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
-            if (_memoryCache.TryGetValue("ProductReviews", out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
             {
                 productReviewValues.RemoveAll(pr => pr.ProductReviewID == productReviewModel.ProductReviewID);
                 productReviewValues.Add(productReviewModel);

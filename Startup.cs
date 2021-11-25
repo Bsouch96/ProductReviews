@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using ProductReviews.CustomExceptionMiddleware;
+using ProductReviews.Extensions;
 using ProductReviews.Models;
 using ProductReviews.Repositories.Concrete;
 using ProductReviews.Repositories.Interface;
@@ -56,7 +57,7 @@ namespace ProductReviews
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMemoryCacheAutomater memoryCacheAutomater)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMemoryCacheAutomater memoryCacheAutomater, Context.DbContext context)
         {
             if (env.IsDevelopment())
             {
@@ -64,7 +65,8 @@ namespace ProductReviews
             }
             else
             {
-
+                app.ConfigureCustomExceptionMiddleware();
+                context.Database.Migrate();
             }
 
             app.UseMiddleware<ExceptionMiddleware>();

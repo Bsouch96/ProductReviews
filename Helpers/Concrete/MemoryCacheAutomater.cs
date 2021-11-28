@@ -21,6 +21,7 @@ namespace Invoices.Helpers.Concrete
         {
             _productReviewsRepository = productReviewsRepository;
             _memoryCache = memoryCache;
+            _optionsMonitor = optionsMonitor;
         }
 
         public void AutomateCache()

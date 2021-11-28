@@ -1,5 +1,6 @@
 using Invoices.Helpers.Concrete;
 using Invoices.Helpers.Interface;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,16 @@ namespace ProductReviews
             services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
             (Configuration.GetConnectionString("ThamcoConnectionString")));
 
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
+                options.Audience = Configuration["Auth0:Audience"];
+            });
+
             services.AddControllers().AddNewtonsoftJson(j =>
             {
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
@@ -52,6 +63,7 @@ namespace ProductReviews
                 services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
             }
 
+            services.AddMemoryCache();
             services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
             services.Configure<MemoryCacheModel>(Configuration.GetSection("MemoryCache"));
         }
@@ -74,6 +86,8 @@ namespace ProductReviews
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

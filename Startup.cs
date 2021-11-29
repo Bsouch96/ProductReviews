@@ -20,13 +20,13 @@ namespace ProductReviews
     public class Startup
     {
         private readonly IWebHostEnvironment _environment;
+        private readonly IConfiguration Configuration;
+
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
             _environment = environment;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)

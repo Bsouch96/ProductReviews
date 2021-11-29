@@ -15,17 +15,16 @@ namespace Invoices.Helpers.Concrete
     {
         private readonly IProductReviewsRepository _productReviewsRepository;
         private readonly IMemoryCache _memoryCache;
-        private readonly IOptionsMonitor<MemoryCacheModel> _optionsMonitor;
+        private readonly MemoryCacheModel _memoryCacheModel;
 
-        public MemoryCacheAutomater(IProductReviewsRepository productReviewsRepository, IMemoryCache memoryCache, IOptionsMonitor<MemoryCacheModel> optionsMonitor)
+        public MemoryCacheAutomater(IProductReviewsRepository productReviewsRepository, IMemoryCache memoryCache, IOptions<MemoryCacheModel> memoryCacheModel)
         {
             _productReviewsRepository = productReviewsRepository;
-            _memoryCache = memoryCache;
-        }
+            _memoryCacheModel = memoryCacheModel.Value;        }
 
         public void AutomateCache()
         {
-            RegisterCache(_optionsMonitor.CurrentValue.ProductReviews, null, EvictionReason.None, null);
+            RegisterCache(_memoryCacheModel.ProductReviews, null, EvictionReason.None, null);
         }
 
         private MemoryCacheEntryOptions GetMemoryCacheEntryOptions()

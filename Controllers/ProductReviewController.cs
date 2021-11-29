@@ -23,21 +23,21 @@ namespace ProductReviews.Controllers
         private readonly IProductReviewsRepository _productReviewsRepository;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _memoryCache;
-        private readonly IOptionsMonitor<MemoryCacheModel> _optionsMonitor;
+        private readonly MemoryCacheModel _memoryCacheModel;
 
         public ProductReviewController(IProductReviewsRepository productReviewsRepository, IMapper mapper, IMemoryCache memoryCache,
-            IOptionsMonitor<MemoryCacheModel> optionsMonitor)
+            IOptions<MemoryCacheModel> memoryCacheModel)
         {
             _productReviewsRepository = productReviewsRepository;
             _mapper = mapper;
             _memoryCache = memoryCache;
-            _optionsMonitor = optionsMonitor;
+            _memoryCacheModel = memoryCacheModel.Value;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
         {
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewModel>>(productReviewValues));
 
             var productReviews = await _productReviewsRepository.GetAllProductReviewsAsync();
@@ -48,7 +48,7 @@ namespace ProductReviews.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviews()
         {
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden)));
 
             var productReviews = await _productReviewsRepository.GetAllVisibleProductReviewsAsync();
@@ -63,7 +63,7 @@ namespace ProductReviews.Controllers
 
             ProductReviewModel productReview;
             //If cache exists and we find the entity.
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
             {
                 //Return the entity if we find it in the cache.
                 productReview = productReviewValues.Find(pr => pr.ProductReviewID == ID);
@@ -103,7 +103,7 @@ namespace ProductReviews.Controllers
             ProductReviewModel newProductReviewModel = _productReviewsRepository.CreateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 productReviewValues.Add(newProductReviewModel);
 
             ProductReviewReadDTO productReviewReadDTO = _mapper.Map<ProductReviewReadDTO>(newProductReviewModel);
@@ -136,7 +136,7 @@ namespace ProductReviews.Controllers
             _productReviewsRepository.UpdateProductReview(productReviewModel);
             await _productReviewsRepository.SaveChangesAsync();
 
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+            if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
             {
                 productReviewValues.RemoveAll(pr => pr.ProductReviewID == productReviewModel.ProductReviewID);
                 productReviewValues.Add(productReviewModel);

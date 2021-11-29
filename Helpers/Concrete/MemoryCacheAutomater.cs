@@ -20,7 +20,9 @@ namespace Invoices.Helpers.Concrete
         public MemoryCacheAutomater(IProductReviewsRepository productReviewsRepository, IMemoryCache memoryCache, IOptions<MemoryCacheModel> memoryCacheModel)
         {
             _productReviewsRepository = productReviewsRepository;
-            _memoryCacheModel = memoryCacheModel.Value;        }
+            _memoryCache = memoryCache;
+            _memoryCacheModel = memoryCacheModel.Value;
+        }
 
         public void AutomateCache()
         {

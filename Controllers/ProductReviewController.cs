@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,7 @@ namespace ProductReviews.Controllers
             _memoryCacheModel = memoryCacheModel.Value;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
         {
@@ -45,6 +47,7 @@ namespace ProductReviews.Controllers
         }
 
         [Route("Visible")]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviews()
         {
@@ -55,6 +58,7 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
+        [Authorize]
         [HttpGet("{ID}")]
         public async Task<ActionResult<ProductReviewReadDTO>> GetProductReview(int ID)
         {
@@ -90,6 +94,7 @@ namespace ProductReviews.Controllers
         }
 
         [Route("Create")]
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
@@ -112,6 +117,7 @@ namespace ProductReviews.Controllers
         }
 
         [Route("Visibility/{ID}")]
+        [Authorize]
         [HttpPatch]
         public async Task<ActionResult> UpdateProductReview(int ID, JsonPatchDocument<ProductReviewUpdateDTO> productReviewUpdatePatch)
         {

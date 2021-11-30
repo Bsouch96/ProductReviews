@@ -37,7 +37,15 @@ namespace ProductReviews
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
-            (Configuration.GetConnectionString("ThamcoConnectionString")));
+                (Configuration.GetConnectionString("ThamcoConnectionString"),
+                    sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure
+                    (
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(2),
+                        errorNumbersToAdd: null
+                    )
+                )
+            );
 
             services.AddAuthentication(options =>
             {

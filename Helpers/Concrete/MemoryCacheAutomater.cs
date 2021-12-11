@@ -1,5 +1,6 @@
 ﻿using Invoices.Helpers.Interface;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using ProductReviews.DomainModels;
@@ -17,9 +18,9 @@ namespace Invoices.Helpers.Concrete
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheModel _memoryCacheModel;
 
-        public MemoryCacheAutomater(IProductReviewsRepository productReviewsRepository, IMemoryCache memoryCache, IOptions<MemoryCacheModel> memoryCacheModel)
+        public MemoryCacheAutomater(IServiceScopeFactory serviceProvider, IMemoryCache memoryCache, IOptions<MemoryCacheModel> memoryCacheModel)
         {
-            _productReviewsRepository = productReviewsRepository;
+            _productReviewsRepository = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<IProductReviewsRepository>();
             _memoryCache = memoryCache;
             _memoryCacheModel = memoryCacheModel.Value;
         }

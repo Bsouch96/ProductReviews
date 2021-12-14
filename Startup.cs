@@ -62,15 +62,15 @@ namespace ProductReviews
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            if (_environment.IsDevelopment())
+            /*if (_environment.IsDevelopment())
             {
                 services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
             }
             else
             {
-                services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
-            }
-
+                
+            }*/
+            services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
             services.AddMemoryCache();
             services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
             services.Configure<MemoryCacheModel>(Configuration.GetSection("MemoryCache"));

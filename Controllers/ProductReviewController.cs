@@ -46,6 +46,7 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
+        [Authorize]
         [Route("Visible/{ID}")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviewsForProduct(int ID)

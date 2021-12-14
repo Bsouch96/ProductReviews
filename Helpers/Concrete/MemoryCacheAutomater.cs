@@ -1,7 +1,10 @@
 ﻿using Invoices.Helpers.Interface;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using ProductReviews.DomainModels;
+using ProductReviews.Models;
 using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
@@ -12,17 +15,19 @@ namespace Invoices.Helpers.Concrete
     public class MemoryCacheAutomater : IMemoryCacheAutomater
     {
         private readonly IProductReviewsRepository _productReviewsRepository;
-        public readonly IMemoryCache _memoryCache;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheModel _memoryCacheModel;
 
-        public MemoryCacheAutomater(IProductReviewsRepository productReviewsRepository, IMemoryCache memoryCache)
+        public MemoryCacheAutomater(IServiceScopeFactory serviceProvider, IMemoryCache memoryCache, IOptions<MemoryCacheModel> memoryCacheModel)
         {
-            _productReviewsRepository = productReviewsRepository;
+            _productReviewsRepository = serviceProvider.CreateScope().ServiceProvider.GetRequiredService<IProductReviewsRepository>();
             _memoryCache = memoryCache;
+            _memoryCacheModel = memoryCacheModel.Value;
         }
 
         public void AutomateCache()
         {
-            RegisterCache("ProductReviews", null, EvictionReason.None, null);
+            RegisterCache(_memoryCacheModel.ProductReviews, null, EvictionReason.None, null);
         }
 
         private MemoryCacheEntryOptions GetMemoryCacheEntryOptions()

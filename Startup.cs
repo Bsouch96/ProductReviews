@@ -62,15 +62,27 @@ namespace ProductReviews
                 j.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
-            /*if (_environment.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
                 services.AddSingleton<IProductReviewsRepository, FakeProductReviewsRepository>();
             }
             else
             {
-                
-            }*/
-            services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
+                services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
+            }
+
+            services.AddAuthorization(o =>
+            {
+                o.AddPolicy("ReadReviews", policy =>
+                    policy.RequireClaim("permissions", "read:product_reviews"));
+                o.AddPolicy("ReadReview", policy =>
+                    policy.RequireClaim("permissions", "read:product_review"));
+                o.AddPolicy("CreateReview", policy =>
+                    policy.RequireClaim("permissions", "add:product_review"));
+                o.AddPolicy("UpdateReview", policy =>
+                    policy.RequireClaim("permissions", "edit:product_review"));
+            });
+
             services.AddMemoryCache();
             services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
             services.Configure<MemoryCacheModel>(Configuration.GetSection("MemoryCache"));

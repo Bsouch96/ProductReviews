@@ -46,7 +46,7 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
-        [Authorize]
+        [Authorize("ReadReviews")]
         [Route("Visible/{ID}")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviewsForProduct(int ID)
@@ -61,7 +61,7 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
-        [Authorize]
+        [Authorize("ReadReview")]
         [HttpGet("{ID}")]
         public async Task<ActionResult<ProductReviewReadDTO>> GetProductReview(int ID)
         {
@@ -97,7 +97,7 @@ namespace ProductReviews.Controllers
         }
 
         [Route("Create")]
-        [Authorize]
+        [Authorize("CreateReview")]
         [HttpPost]
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
@@ -120,7 +120,7 @@ namespace ProductReviews.Controllers
         }
 
         [Route("Visibility/{ID}")]
-        [Authorize]
+        [Authorize("UpdateReview")]
         [HttpPatch]
         public async Task<ActionResult> UpdateProductReview(int ID, JsonPatchDocument<ProductReviewUpdateDTO> productReviewUpdatePatch)
         {

@@ -22,9 +22,12 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.AsNoTracking().ToListAsync();
         }
 
-        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsForProductAsync(int ID)
         {
-            return await _context._productReviews.AsNoTracking().Where(pr => !pr.ProductReviewIsHidden).ToListAsync();
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
+            return await _context._productReviews.AsNoTracking().Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID).ToListAsync();
         }
 
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)

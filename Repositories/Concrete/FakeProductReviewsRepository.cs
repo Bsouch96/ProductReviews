@@ -51,13 +51,19 @@ namespace ProductReviews.Repositories.Concrete
             return await Task.FromResult(new List<ProductReviewModel>(_productReviews));
         }
 
-        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsAsync()
+        public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsForProductAsync(int ID)
         {
-            return await Task.FromResult(new List<ProductReviewModel>(_productReviews.Where(pr => !pr.ProductReviewIsHidden)));
+            if (ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+
+            return await Task.FromResult(new List<ProductReviewModel>(_productReviews.Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID)));
         }
 
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
+            if (productReviewModel == null)
+                throw new ArgumentNullException("The product review to create cannot be null.", nameof(ArgumentNullException));
+
             int productReviewID = (_productReviews.Count + 1);
             productReviewModel.ProductReviewID = productReviewID;
 

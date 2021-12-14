@@ -44,14 +44,17 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
-        [Route("Visible")]
+        [Route("Visible/{ID}")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviews()
+        public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviewsForProduct(int ID)
         {
-            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
-                return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden)));
+            if(ID < 1)
+                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
 
-            var productReviews = await _productReviewsRepository.GetAllVisibleProductReviewsAsync();
+            if (_memoryCache.TryGetValue(_optionsMonitor.CurrentValue.ProductReviews, out List<ProductReviewModel> productReviewValues))
+                return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID)));
+
+            var productReviews = await _productReviewsRepository.GetAllVisibleProductReviewsForProductAsync(ID);
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 

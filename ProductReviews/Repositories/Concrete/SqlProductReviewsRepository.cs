@@ -25,7 +25,7 @@ namespace ProductReviews.Repositories.Concrete
         public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsForProductAsync(int ID)
         {
             if (ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             return await _context._productReviews.AsNoTracking().Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID).ToListAsync();
         }
@@ -33,7 +33,7 @@ namespace ProductReviews.Repositories.Concrete
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
             if (ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID) ?? throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist."); ;
         }
@@ -41,7 +41,7 @@ namespace ProductReviews.Repositories.Concrete
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
-                throw new ArgumentNullException("The product review to be created cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException(nameof(productReviewModel), "The product review used to update cannot be null.");
 
             return _context._productReviews.Add(productReviewModel).Entity;
         }
@@ -49,7 +49,7 @@ namespace ProductReviews.Repositories.Concrete
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
-                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException(nameof(productReviewModel), "The product review used to update cannot be null.");
 
             _context._productReviews.Update(productReviewModel);
         }

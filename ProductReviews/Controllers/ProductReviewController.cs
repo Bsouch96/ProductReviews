@@ -40,7 +40,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
         {
             if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
-                return Ok(_mapper.Map<IEnumerable<ProductReviewModel>>(productReviewValues));
+                return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues));
 
             var productReviews = await _productReviewsRepository.GetAllProductReviewsAsync();
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
@@ -52,7 +52,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviewsForProduct(int ID)
         {
             if(ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             if (_memoryCache.TryGetValue(_memoryCacheModel.ProductReviews, out List<ProductReviewModel> productReviewValues))
                 return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviewValues.Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID)));
@@ -66,7 +66,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult<ProductReviewReadDTO>> GetProductReview(int ID)
         {
             if (ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             ProductReviewModel productReview;
             //If cache exists and we find the entity.
@@ -102,7 +102,7 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult> CreateProductReview([FromBody] ProductReviewCreateDTO productReviewCreateDTO)
         {
             if (productReviewCreateDTO == null)
-                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException(nameof(productReviewCreateDTO), "The product review used to update cannot be null.");
 
             ProductReviewModel productReviewModel = _mapper.Map<ProductReviewModel>(productReviewCreateDTO);
             productReviewModel.ProductReviewDate = System.DateTime.Now;
@@ -125,10 +125,10 @@ namespace ProductReviews.Controllers
         public async Task<ActionResult> UpdateProductReview(int ID, JsonPatchDocument<ProductReviewUpdateDTO> productReviewUpdatePatch)
         {
             if (ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             if(productReviewUpdatePatch == null)
-                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ArgumentNullException(nameof(productReviewUpdatePatch), "The product review used to update cannot be null.");
 
             ProductReviewModel productReviewModel = await _productReviewsRepository.GetProductReviewAsync(ID);
             if (productReviewModel == null)

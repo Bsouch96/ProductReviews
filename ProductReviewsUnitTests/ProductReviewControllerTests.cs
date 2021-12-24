@@ -14,6 +14,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using FluentAssertions;
+using ProductReviews.CustomExceptionMiddleware;
+using ProductReviewsUnitTests.Data;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ProductReviewsUnitTests
 {
@@ -287,5 +292,459 @@ namespace ProductReviewsUnitTests
             var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await productReviewController.GetAllVisibleProductReviewsForProduct(ID));
             Assert.Equal("IDs cannot be less than 1. (Parameter 'ID')", exception.Message);
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-10)]
+        [InlineData(int.MinValue)]
+        public async void GetDeletionRequest_ThrowsArgumentOutOfRangeException_IDLessThanOne(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await productReviewController.GetProductReview(ID));
+            Assert.Equal("IDs cannot be less than 1. (Parameter 'ID')", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(5)]
+        public async void GetProductReview_ShouldReturnFromMemoryCache(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            var result = await productReviewController.GetProductReview(ID);
+
+            //Assert
+            Assert.IsType<OkObjectResult>(result.Result);
+            mockDeletionRequestRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(2)]
+        [InlineData(4)]
+        public async void GetProductReview_ShouldAddToMemoryCacheIfNotExists(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var repoExpected = GetProductReviews();
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(pr => pr.ProductReviewID == ID)).Verifiable();
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var expectedReturn = _mapper.Map<ProductReviewReadDTO>(repoExpected.Find(pr => pr.ProductReviewID == ID));
+            //Perform GET to add to the memory cache.
+            await productReviewController.GetProductReview(ID);
+            mockDeletionRequestRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+            //Get the newly added DeletionRequest from the memoryCache.
+            var action = await productReviewController.GetProductReview(ID);
+            var actionResult = Assert.IsType<OkObjectResult>(action.Result);
+            ProductReviewReadDTO returnedModel = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            returnedModel.Should().BeEquivalentTo(expectedReturn);
+            mockDeletionRequestRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+        }
+
+        [Theory]
+        [InlineData(2)]
+        [InlineData(4)]
+        public async void GetProductReview_ShouldReturnFromDBWhenNotInAnExistingCache(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var repoExpected = GetProductReviews();
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(pr => pr.ProductReviewID == ID)).Verifiable();
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            var expectedReturn = _mapper.Map<ProductReviewReadDTO>(repoExpected.Find(pr => pr.ProductReviewID == ID));
+            var action = await productReviewController.GetProductReview(ID);
+
+            //Assert
+            mockDeletionRequestRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+            var actionResult = Assert.IsType<OkObjectResult>(action.Result);
+            ProductReviewReadDTO returnedModel = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            returnedModel.Should().BeEquivalentTo(expectedReturn);
+        }
+
+        [Theory]
+        [InlineData(10)]
+        [InlineData(50)]
+        [InlineData(int.MaxValue)]
+        public async void GetProductReview_ThrowsResourceNotFoundExceptionWhenIDNotInCacheOrDB(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var repoExpected = GetProductReviews();
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(pr => pr.ProductReviewID == ID)).Verifiable();
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await productReviewController.GetProductReview(ID));
+            Assert.Equal("A resource for ID: " + ID + " does not exist.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(10)]
+        [InlineData(50)]
+        [InlineData(int.MaxValue)]
+        public async void GetProductReview_ThrowsResourceNotFoundExceptionWhenIDNotDBWithExpiredCache(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var repoExpected = GetProductReviews();
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(pr => pr.ProductReviewID == ID)).Verifiable();
+            object tryGetValueExpected = null;
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(false);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await productReviewController.GetProductReview(ID));
+            Assert.Equal("A resource for ID: " + ID + " does not exist.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(5)]
+        public async void GetProductReview_ShouldReturnFromDBWhenCacheExpired(int ID)
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var repoExpected = GetProductReviews();
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(pr => pr.ProductReviewID == ID)).Verifiable();
+            object tryGetValueExpected = null;
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(false);
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            var expectedReturn = _mapper.Map<ProductReviewReadDTO>(repoExpected.Find(pr => pr.ProductReviewID == ID));
+            var action = await productReviewController.GetProductReview(ID);
+
+            //Assert
+            mockDeletionRequestRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+            var actionResult = Assert.IsType<OkObjectResult>(action.Result);
+            ProductReviewReadDTO returnedModel = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            returnedModel.Should().BeEquivalentTo(expectedReturn);
+        }
+
+        [Fact]
+        public async void GetProductReview_ThrowsException()
+        {
+            //Arrange
+            var mockDeletionRequestRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockDeletionRequestRepo.Setup(dr => dr.GetProductReviewAsync(1)).ThrowsAsync(new Exception()).Verifiable();
+            var productReviewController = new ProductReviewController(mockDeletionRequestRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            await Assert.ThrowsAsync<Exception>(async () => await productReviewController.GetProductReview(1));
+        }
+
+        [Theory, MemberData(nameof(ProductReviewCreateDTOObjects.GetProductReviewCreateDTOObjects),
+                 MemberType = typeof(ProductReviewCreateDTOObjects))]
+        public async void CreateDeletionRequest_ShouldReturnCreatedAtAction(string ProductReviewHeader, string ProductReviewContent, DateTime ProductReviewDate, int ProductID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            ProductReviewCreateDTO newDeletionRequestCreateDTO = new ProductReviewCreateDTO()
+            {
+                ProductReviewHeader = ProductReviewHeader,
+                ProductReviewContent = ProductReviewContent,
+                ProductReviewDate = ProductReviewDate,
+                ProductID = ProductID,
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+
+            ProductReviewModel repoDeletionRequestModel = new ProductReviewModel()
+            {
+                 ProductReviewHeader = ProductReviewHeader,
+                 ProductReviewContent = ProductReviewContent,
+                 ProductReviewDate = ProductReviewDate,
+                 ProductID = ProductID,
+                 ProductReviewIsHidden = ProductReviewIsHidden,
+                 ProductReviewID = (GetProductReviews().Count + 1)
+            };
+
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.CreateProductReview(It.IsAny<ProductReviewModel>())).Returns(repoDeletionRequestModel).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.SaveChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+            object tryGetValueExpected = null;
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(false);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            var result = await productReviewController.CreateProductReview(newDeletionRequestCreateDTO);
+
+            //Assert
+            var actionResult = Assert.IsType<CreatedAtActionResult>(result);
+            ProductReviewReadDTO model = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+        }
+
+        [Fact]
+        public async void CreateDeletionRequest_ThrowsArgumentNullException()
+        {
+            //Arrange
+            ProductReviewCreateDTO newDeletionRequestCreateDTO = null;
+
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Assert
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await productReviewController.CreateProductReview(newDeletionRequestCreateDTO));
+            Assert.Equal("The product review used to update cannot be null. (Parameter 'productReviewCreateDTO')", exception.Message);
+        }
+
+        [Theory, MemberData(nameof(ProductReviewCreateDTOObjects.GetProductReviewCreateDTOObjects),
+                 MemberType = typeof(ProductReviewCreateDTOObjects))]
+        public async void CreateDeletionRequest_ShouldCreateInDB(string ProductReviewHeader, string ProductReviewContent, DateTime ProductReviewDate, int ProductID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            ProductReviewCreateDTO newDeletionRequestCreateDTO = new ProductReviewCreateDTO()
+            {
+                ProductReviewHeader = ProductReviewHeader,
+                ProductReviewContent = ProductReviewContent,
+                ProductReviewDate = ProductReviewDate,
+                ProductID = ProductID,
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+
+            ProductReviewModel repoDeletionRequestModel = new ProductReviewModel()
+            {
+                 ProductReviewHeader = ProductReviewHeader,
+                 ProductReviewContent = ProductReviewContent,
+                 ProductReviewDate = ProductReviewDate,
+                 ProductID = ProductID,
+                 ProductReviewIsHidden = ProductReviewIsHidden,
+                 ProductReviewID = (GetProductReviews().Count + 1)
+            };
+
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.CreateProductReview(It.IsAny<ProductReviewModel>())).Returns(repoDeletionRequestModel).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.SaveChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+            object tryGetValueExpected = null;
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(false);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            var result = await productReviewController.CreateProductReview(newDeletionRequestCreateDTO);
+
+            //Assert
+            var actionResult = Assert.IsType<CreatedAtActionResult>(result);
+            ProductReviewReadDTO model = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            mockProductReviewsRepo.Verify(dr => dr.CreateProductReview(It.IsAny<ProductReviewModel>()), Times.Once());
+            mockProductReviewsRepo.Verify(dr => dr.SaveChangesAsync(), Times.Once());
+        }
+
+        [Theory, MemberData(nameof(ProductReviewCreateDTOObjects.GetProductReviewCreateDTOObjects),
+                 MemberType = typeof(ProductReviewCreateDTOObjects))]
+        public async void CreateDeletionRequest_ShouldAddToCache(string ProductReviewHeader, string ProductReviewContent, DateTime ProductReviewDate, int ProductID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            ProductReviewCreateDTO newDeletionRequestCreateDTO = new ProductReviewCreateDTO()
+            {
+                ProductReviewHeader = ProductReviewHeader,
+                ProductReviewContent = ProductReviewContent,
+                ProductReviewDate = ProductReviewDate,
+                ProductID = ProductID,
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+
+            ProductReviewModel repoDeletionRequestModel = new ProductReviewModel()
+            {
+                ProductReviewHeader = ProductReviewHeader,
+                ProductReviewContent = ProductReviewContent,
+                ProductReviewDate = ProductReviewDate,
+                ProductID = ProductID,
+                ProductReviewIsHidden = ProductReviewIsHidden,
+                ProductReviewID = (GetProductReviews().Count + 1)
+            };
+
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.CreateProductReview(It.IsAny<ProductReviewModel>())).Returns(repoDeletionRequestModel).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.SaveChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act
+            //Add to cache with create call.
+            await productReviewController.CreateProductReview(newDeletionRequestCreateDTO);
+            var result = productReviewController.GetProductReview(repoDeletionRequestModel.ProductReviewID);
+
+            //Assert
+            var actionResult = Assert.IsType<OkObjectResult>(result.Result.Result);
+            ProductReviewReadDTO model = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(repoDeletionRequestModel.ProductReviewID), Times.Never());
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-10)]
+        [InlineData(int.MinValue)]
+        public async void UpdateProductReview_ThrowsArgumentOutOfRangeException(int ID)
+        {
+            //Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
+
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await productReviewController.UpdateProductReview(ID, jsonPatchDocument));
+            Assert.Equal("IDs cannot be less than 1. (Parameter 'ID')", exception.Message);
+        }
+
+        [Fact]
+        public async void UpdateProductReview_ThrowsArgumentNullException()
+        {
+            //Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = null;
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await productReviewController.UpdateProductReview(1, jsonPatchDocument));
+            Assert.Equal("The product review used to update cannot be null. (Parameter 'productReviewUpdatePatch')", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(10, false)]
+        [InlineData(30, false)]
+        [InlineData(50, false)]
+        public async void ApproveDeletionRequest_ThrowsResourceNotFoundException(int ID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
+            ProductReviewUpdateDTO deletionRequestApproveDTO = new ProductReviewUpdateDTO()
+            {
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+            jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
+            var repoExpected = GetProductReviews();
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(dr => dr.ProductReviewID == ID)).Verifiable();
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            //Act and Assert
+            var exception = await Assert.ThrowsAsync<ResourceNotFoundException>(async () => await productReviewController.UpdateProductReview(ID, jsonPatchDocument));
+            Assert.Equal("A resource for ID: " + ID + " does not exist.", exception.Message);
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+        }
+
+        [Theory, MemberData(nameof(ProductReviewUpdateDTOObjects.GetProductReviewUpdateDTOObjects),
+                 MemberType = typeof(ProductReviewUpdateDTOObjects))]
+        public async void ApproveDeletionRequest_ReturnsNoContent(int ID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
+            ProductReviewUpdateDTO deletionRequestApproveDTO = new ProductReviewUpdateDTO()
+            {
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+            jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
+            var repoExpected = GetProductReviews();
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(dr => dr.ProductReviewID == ID)).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.UpdateProductReview(It.IsAny<ProductReviewModel>())).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.SaveChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+            object tryGetValueExpected = null;
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(false);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+            var objectValidator = new Mock<IObjectModelValidator>();
+            objectValidator.Setup(o => o.Validate(It.IsAny<ActionContext>(),
+                                              It.IsAny<ValidationStateDictionary>(),
+                                              It.IsAny<string>(),
+                                              It.IsAny<Object>()));
+            productReviewController.ObjectValidator = objectValidator.Object;
+
+            //Act
+            var action = await productReviewController.UpdateProductReview(ID, jsonPatchDocument);
+
+            //Assert
+            var actionResult = Assert.IsType<NoContentResult>(action);
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+            mockProductReviewsRepo.Verify(dr => dr.UpdateProductReview(It.IsAny<ProductReviewModel>()), Times.Once());
+            mockProductReviewsRepo.Verify(dr => dr.SaveChangesAsync(), Times.Once());
+        }
+
+        [Theory, MemberData(nameof(ProductReviewUpdateDTOObjects.GetProductReviewUpdateDTOObjects),
+                 MemberType = typeof(ProductReviewUpdateDTOObjects))]
+        public async void ApproveDeletionRequest_ShouldAddToCache(int ID, bool ProductReviewIsHidden)
+        {
+            //Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
+            ProductReviewUpdateDTO deletionRequestApproveDTO = new ProductReviewUpdateDTO()
+            {
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+            jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
+            var repoExpected = GetProductReviews();
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(dr => dr.ProductReviewID == ID)).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.UpdateProductReview(It.IsAny<ProductReviewModel>())).Verifiable();
+            mockProductReviewsRepo.Setup(dr => dr.SaveChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+            object tryGetValueExpected = GetProductReviewsForMemoryCache();
+            _memoryCacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out tryGetValueExpected)).Returns(true);
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+            var objectValidator = new Mock<IObjectModelValidator>();
+            objectValidator.Setup(o => o.Validate(It.IsAny<ActionContext>(),
+                                              It.IsAny<ValidationStateDictionary>(),
+                                              It.IsAny<string>(),
+                                              It.IsAny<Object>()));
+            productReviewController.ObjectValidator = objectValidator.Object;
+
+            //Act
+            //Perform GET to add to the memory cache.
+            await productReviewController.UpdateProductReview(ID, jsonPatchDocument);
+            //Get the newly added DeletionRequest from the memoryCache.
+            var action = await productReviewController.GetProductReview(ID);
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+
+            //Assert
+            var actionResult = Assert.IsType<OkObjectResult>(action.Result);
+            ProductReviewReadDTO returnedModel = Assert.IsAssignableFrom<ProductReviewReadDTO>(actionResult.Value);
+            Assert.Equal(returnedModel.ProductReviewID, ID);
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+            mockProductReviewsRepo.Verify(dr => dr.UpdateProductReview(It.IsAny<ProductReviewModel>()), Times.Once());
+            mockProductReviewsRepo.Verify(dr => dr.SaveChangesAsync(), Times.Once());
+        }
+
+        /*[Theory, MemberData(nameof(ProductReviewUpdateDTOObjects.GetProductReviewUpdateDTOObjects),
+                 MemberType = typeof(ProductReviewUpdateDTOObjects))]
+        public async Task Update_WhenCalledWithModelStateError_ThrowsArgumentException(int ID, bool ProductReviewIsHidden)
+        {
+            // Arrange
+            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
+            ProductReviewUpdateDTO deletionRequestApproveDTO = new ProductReviewUpdateDTO()
+            {
+                ProductReviewIsHidden = ProductReviewIsHidden
+            };
+            jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
+            var repoExpected = GetProductReviews();
+            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
+            mockProductReviewsRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(dr => dr.ProductReviewID == ID)).Verifiable();
+
+            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
+
+            productReviewController.ObjectValidator = new FaultyValidator();
+
+            // Act
+            await Assert.ThrowsAsync<ArgumentException>(async () => await productReviewController.UpdateProductReview(ID, jsonPatchDocument));
+
+            // Assert
+            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
+        }*/
     }
 }

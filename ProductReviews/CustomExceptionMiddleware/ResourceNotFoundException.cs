@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ProductReviews.CustomExceptionMiddleware
 {
     [Serializable]
-    internal class ResourceNotFoundException : Exception
+    public class ResourceNotFoundException : Exception
     {
         public ResourceNotFoundException(string message) : base(message)
         {

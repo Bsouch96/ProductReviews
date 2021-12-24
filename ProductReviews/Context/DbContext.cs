@@ -9,11 +9,10 @@ namespace ProductReviews.Context
 {
     public class DbContext : Microsoft.EntityFrameworkCore.DbContext
     {
-        public DbSet<ProductReviewModel> _productReviews { get; set; }
-        public DbContext(DbContextOptions<DbContext> options) : base(options)
-        {
-
-        }
+        public virtual DbSet<ProductReviewModel> _productReviews { get; set; }
+        public DbContext(DbContextOptions<DbContext> options) : base(options){}
+        
+        public DbContext() : base(){}
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

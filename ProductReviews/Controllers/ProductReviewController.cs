@@ -35,7 +35,7 @@ namespace ProductReviews.Controllers
             _memoryCacheModel = memoryCacheModel.Value;
         }
 
-        [Authorize]
+        [Authorize("ReadReviews")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
         {
@@ -46,7 +46,7 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
-        [Authorize("ReadReviews")]
+        [Authorize("ReadVisibleReviews")]
         [Route("Visible/{ID}")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllVisibleProductReviewsForProduct(int ID)

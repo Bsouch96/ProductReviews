@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductReviews", "ProductRe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductReviewsUnitTests", "ProductReviewsUnitTests\ProductReviewsUnitTests.csproj", "{FBEC718B-C517-4E4D-B6C2-B560453823DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductReviewsIntegrationTests", "ProductReviewsIntegrationTests\ProductReviewsIntegrationTests.csproj", "{CC488CCB-1AB0-46DD-BCF6-CBFAB58F3FEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FBEC718B-C517-4E4D-B6C2-B560453823DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBEC718B-C517-4E4D-B6C2-B560453823DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBEC718B-C517-4E4D-B6C2-B560453823DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC488CCB-1AB0-46DD-BCF6-CBFAB58F3FEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC488CCB-1AB0-46DD-BCF6-CBFAB58F3FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC488CCB-1AB0-46DD-BCF6-CBFAB58F3FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC488CCB-1AB0-46DD-BCF6-CBFAB58F3FEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

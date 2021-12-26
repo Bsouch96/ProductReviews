@@ -35,27 +35,25 @@ namespace ProductReviews
             services.AddControllers();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-            services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
-                (Configuration.GetConnectionString("ThamcoConnectionString"),
-                    sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure
-                    (
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(2),
-                        errorNumbersToAdd: null
+            if(_environment.IsDevelopment())
+            {
+                services.AddDbContext<Context.DbContext>(options => options.UseSqlServer("localhost"));
+            }
+            else if(_environment.IsStaging() || _environment.IsProduction())
+            {
+                services.AddDbContext<Context.DbContext>(options => options.UseSqlServer
+                    (Configuration.GetConnectionString("ThamcoConnectionString"),
+                        sqlServerOptionsAction: sqlOptions => sqlOptions.EnableRetryOnFailure
+                        (
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(2),
+                            errorNumbersToAdd: null
+                        )
                     )
-                )
-            );
+                );
+            }
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
-                options.Audience = Configuration["Auth0:Audience"];
-            });
+            SetupAuth(services);
 
             services.AddControllers().AddNewtonsoftJson(j =>
             {
@@ -71,18 +69,6 @@ namespace ProductReviews
                 services.AddScoped<IProductReviewsRepository, SqlProductReviewsRepository>();
             }
 
-            services.AddAuthorization(o =>
-            {
-                o.AddPolicy("ReadReviews", policy =>
-                    policy.RequireClaim("permissions", "read:product_reviews"));
-                o.AddPolicy("ReadReview", policy =>
-                    policy.RequireClaim("permissions", "read:product_review"));
-                o.AddPolicy("CreateReview", policy =>
-                    policy.RequireClaim("permissions", "add:product_review"));
-                o.AddPolicy("UpdateReview", policy =>
-                    policy.RequireClaim("permissions", "edit:product_review"));
-            });
-
             services.AddMemoryCache();
             services.AddSingleton<IMemoryCacheAutomater, MemoryCacheAutomater>();
             services.Configure<MemoryCacheModel>(Configuration.GetSection("MemoryCache"));
@@ -95,13 +81,16 @@ namespace ProductReviews
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
+            else if(env.IsStaging() || env.IsProduction())
             {
                 app.ConfigureCustomExceptionMiddleware();
                 context.Database.Migrate();
+                memoryCacheAutomater.AutomateCache();
             }
-
-            app.UseMiddleware<ExceptionMiddleware>();
+            else
+            {
+                app.ConfigureCustomExceptionMiddleware();
+            }
 
             app.UseHttpsRedirection();
 
@@ -115,8 +104,37 @@ namespace ProductReviews
             {
                 endpoints.MapControllers();
             });
+        }
 
-            memoryCacheAutomater.AutomateCache();
+        private void SetupAuth(IServiceCollection services)
+        {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
+                options.Audience = Configuration["Auth0:Audience"];
+            });
+
+            services.AddAuthorization(o =>
+            {
+                o.AddPolicy("ReadReviews", policy =>
+                    policy.RequireClaim("permissions", "read:product_reviews"));
+                
+                o.AddPolicy("ReadVisibleReviews", policy =>
+                    policy.RequireClaim("permissions", "read:visible_product_reviews"));
+
+                o.AddPolicy("ReadReview", policy =>
+                    policy.RequireClaim("permissions", "read:product_review"));
+
+                o.AddPolicy("CreateReview", policy =>
+                    policy.RequireClaim("permissions", "add:product_review"));
+
+                o.AddPolicy("UpdateReview", policy =>
+                    policy.RequireClaim("permissions", "edit:product_review"));
+            });
         }
     }
 }

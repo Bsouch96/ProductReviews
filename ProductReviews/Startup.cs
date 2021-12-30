@@ -87,7 +87,7 @@ namespace ProductReviews
                 context.Database.Migrate();
                 memoryCacheAutomater.AutomateCache();
             }
-            else
+            else if (_environment.IsEnvironment("IntegrationTests"))
             {
                 app.ConfigureCustomExceptionMiddleware();
             }

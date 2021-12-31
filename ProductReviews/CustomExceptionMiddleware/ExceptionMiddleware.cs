@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace ProductReviews.CustomExceptionMiddleware
 {
+    /// <summary>
+    /// Middleware used to handle all requests sent to the controller that result in exceptions being thrown.
+    /// </summary>
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -20,6 +23,14 @@ namespace ProductReviews.CustomExceptionMiddleware
             _logger = logger;
         }
 
+        /// <summary>
+        /// Main function of the middleware class used to log errors and handle all requests passed through to the controller.
+        /// </summary>
+        /// <param name="context">The http context of the current http request being processed.</param>
+        /// <returns>
+        /// The controller specified return status or, if an exception is thrown, the appropraite statuscode coupled with an
+        /// ErrorModel containing the error message and statuscode.
+        /// </returns>
         public async Task InvokeAsync(HttpContext context)
         {
             try
@@ -58,6 +69,15 @@ namespace ProductReviews.CustomExceptionMiddleware
             }
         }
 
+        /// <summary>
+        /// This function is used to create an ErrorModel for the response and set the appropriate statuscode.
+        /// </summary>
+        /// <param name="context">The http context of the current http request being processed.</param>
+        /// <param name="httpStatusCode">The resulting statuscode of the http request.</param>
+        /// <param name="exceptionMessage">The message declared when the resulting exception was thrown.</param>
+        /// <returns>
+        /// A completed Task.
+        /// </returns>
         private async Task HandleExceptionAsync(HttpContext context, HttpStatusCode httpStatusCode, string exceptionMessage)
         {
             context.Response.ContentType = "application/json";

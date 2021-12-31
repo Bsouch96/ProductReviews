@@ -23,7 +23,7 @@ namespace ProductReviewsUnitTests
         /// <summary>
         /// Gets the expected product reviews used for repo returns to isolate the controller.
         /// </summary>
-        /// <returns>A list of DeletionRequestModel</returns>
+        /// <returns>A list of ProductReviewModel</returns>
         private List<ProductReviewModel> GetProductReviews()
         {
             return new List<ProductReviewModel>()
@@ -36,6 +36,10 @@ namespace ProductReviewsUnitTests
             };
         }
 
+        /// <summary>
+        /// Create a mock of the ProductReviews.Context.DbContext class seeded with ProductReviewModels.
+        /// </summary>
+        /// <returns>A mock of type Invoices.Context.DbContext</returns>
         private Mock<ProductReviews.Context.DbContext> GetDbContext()
         {
             var context = new Mock<ProductReviews.Context.DbContext>();
@@ -45,6 +49,10 @@ namespace ProductReviewsUnitTests
             return context;
         }
 
+        /// <summary>
+        /// Create a mock DbSet of type ProductReviewModel.
+        /// </summary>
+        /// <returns>A mock DbSet of type ProductReviewModel</returns>
         private Mock<DbSet<ProductReviewModel>> GetMockDbSet()
         {
             return GetProductReviews().AsQueryable().BuildMockDbSet();

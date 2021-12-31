@@ -720,31 +720,5 @@ namespace ProductReviewsUnitTests
             mockProductReviewsRepo.Verify(dr => dr.UpdateProductReview(It.IsAny<ProductReviewModel>()), Times.Once());
             mockProductReviewsRepo.Verify(dr => dr.SaveChangesAsync(), Times.Once());
         }
-
-        /*[Theory, MemberData(nameof(ProductReviewUpdateDTOObjects.GetProductReviewUpdateDTOObjects),
-                 MemberType = typeof(ProductReviewUpdateDTOObjects))]
-        public async Task Update_WhenCalledWithModelStateError_ThrowsArgumentException(int ID, bool ProductReviewIsHidden)
-        {
-            // Arrange
-            JsonPatchDocument<ProductReviewUpdateDTO> jsonPatchDocument = new JsonPatchDocument<ProductReviewUpdateDTO>();
-            ProductReviewUpdateDTO deletionRequestApproveDTO = new ProductReviewUpdateDTO()
-            {
-                ProductReviewIsHidden = ProductReviewIsHidden
-            };
-            jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
-            var repoExpected = GetProductReviews();
-            var mockProductReviewsRepo = new Mock<IProductReviewsRepository>(MockBehavior.Strict);
-            mockProductReviewsRepo.Setup(dr => dr.GetProductReviewAsync(ID)).ReturnsAsync(repoExpected.Find(dr => dr.ProductReviewID == ID)).Verifiable();
-
-            var productReviewController = new ProductReviewController(mockProductReviewsRepo.Object, _mapper, _memoryCacheMock.Object, _memoryCacheModel);
-
-            productReviewController.ObjectValidator = new FaultyValidator();
-
-            // Act
-            await Assert.ThrowsAsync<ArgumentException>(async () => await productReviewController.UpdateProductReview(ID, jsonPatchDocument));
-
-            // Assert
-            mockProductReviewsRepo.Verify(dr => dr.GetProductReviewAsync(ID), Times.Once());
-        }*/
     }
 }

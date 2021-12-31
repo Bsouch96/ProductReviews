@@ -35,6 +35,13 @@ namespace ProductReviews.Controllers
             _memoryCacheModel = memoryCacheModel.Value;
         }
 
+        /// <summary>
+        /// Get all product reviews.
+        /// </summary>
+        /// <returns>
+        /// An Ok() (Statuscode 200) Object ActionResult alongside a collection of ProductReviewReadDTOs
+        /// or an appropriate statuscode based on the exception thrown.
+        /// </returns>
         [Authorize("ReadReviews")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductReviewReadDTO>>> GetAllProductReviews()
@@ -46,6 +53,14 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
+        /// <summary>
+        /// Get all visible product reviews for a particular product.
+        /// </summary>
+        /// <param name="ID">Represents the product ID to get product reviews for.</param>
+        /// <returns>
+        /// An Ok() (Statuscode 200) Object ActionResult alongside a collection of ProductReviewReadDTOs
+        /// or an appropriate statuscode based on the exception thrown.
+        /// </returns>
         [Authorize("ReadVisibleReviews")]
         [Route("Visible/{ID}")]
         [HttpGet]
@@ -61,6 +76,14 @@ namespace ProductReviews.Controllers
             return Ok(_mapper.Map<IEnumerable<ProductReviewReadDTO>>(productReviews));
         }
 
+        /// <summary>
+        /// Get a specific product review.
+        /// </summary>
+        /// <param name="ID">The ID of the required product review.</param>
+        /// <returns>
+        /// An Ok() (Statuscode 200) Object ActionResult alongside a ProductReviewReadDTO
+        /// or an appropriate statuscode based on the exception thrown.
+        /// </returns>
         [Authorize("ReadReview")]
         [HttpGet("{ID}")]
         public async Task<ActionResult<ProductReviewReadDTO>> GetProductReview(int ID)
@@ -96,6 +119,13 @@ namespace ProductReviews.Controllers
             throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist.");
         }
 
+        /// <summary>
+        /// This function is used to create a product review for a customer for a specific product.
+        /// </summary>
+        /// <param name="productReviewCreateDTO">The object containing product review properties which will be used to create a review for a product.</param>
+        /// <returns>
+        /// A CreatedAtAction() (Statuscode 201) ActionResult or an appropriate Statuscode based on the exception thrown.
+        /// </returns>
         [Route("Create")]
         [Authorize("CreateReview")]
         [HttpPost]
@@ -119,6 +149,14 @@ namespace ProductReviews.Controllers
             return CreatedAtAction(nameof(GetProductReview), new { ID = productReviewReadDTO.ProductReviewID }, productReviewReadDTO);
         }
 
+        /// <summary>
+        /// This function will update a product review's visibility from visible to hidden and back.
+        /// </summary>
+        /// <param name="ID">The ID of the review to be hidden.</param>
+        /// <param name="productReviewUpdatePatch">The object that contains the new visibilty parameter.</param>
+        /// <returns>
+        /// A NoContent() (Statuscode 204) ActionResult or an appropriate statuscode based on the exception thrown.
+        /// </returns>
         [Route("Visibility/{ID}")]
         [Authorize("UpdateReview")]
         [HttpPatch]

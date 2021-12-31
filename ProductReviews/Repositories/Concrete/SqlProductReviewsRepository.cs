@@ -17,11 +17,20 @@ namespace ProductReviews.Repositories.Concrete
             _context = context;
         }
 
+        /// <summary>
+        /// Asynchronously get all product reviews.
+        /// </summary>
+        /// <returns>A list of Product Review Models representing reviews.</returns>
         public async Task<List<ProductReviewModel>> GetAllProductReviewsAsync()
         {
             return await _context._productReviews.AsNoTracking().ToListAsync();
         }
 
+        /// <summary>
+        /// Asynchronously get all visible product reviews for a specified product.
+        /// </summary>
+        /// <param name="ID">The ID of the product to get reviews for.</param>
+        /// <returns>A list of Product Review Models for the specified product.</returns>
         public async Task<List<ProductReviewModel>> GetAllVisibleProductReviewsForProductAsync(int ID)
         {
             if (ID < 1)
@@ -30,6 +39,11 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.AsNoTracking().Where(pr => !pr.ProductReviewIsHidden && pr.ProductID == ID).ToListAsync();
         }
 
+        /// <summary>
+        /// Asynchronously get the specified product review.
+        /// </summary>
+        /// <param name="ID">The ID that represents the required prodcut review.</param>
+        /// <returns>A Product Review Model representing the data of a product review.</returns>
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
             if (ID < 1)
@@ -38,6 +52,11 @@ namespace ProductReviews.Repositories.Concrete
             return await _context._productReviews.FirstOrDefaultAsync(d => d.ProductReviewID == ID) ?? throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist."); ;
         }
 
+        /// <summary>
+        /// Create a product review for a customer.
+        /// </summary>
+        /// <param name="productReviewModel">The object that contains parameters used to create an product review.</param>
+        /// <returns>The newly created Product Review Model with a product review ID.</returns>
         public ProductReviewModel CreateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
@@ -46,6 +65,10 @@ namespace ProductReviews.Repositories.Concrete
             return _context._productReviews.Add(productReviewModel).Entity;
         }
 
+        /// <summary>
+        /// Update an existing product review with new parameters.
+        /// </summary>
+        /// <param name="productReviewModel">The object used to update en existing product review.</param>
         public void UpdateProductReview(ProductReviewModel productReviewModel)
         {
             if(productReviewModel == null)
@@ -54,6 +77,10 @@ namespace ProductReviews.Repositories.Concrete
             _context._productReviews.Update(productReviewModel);
         }
 
+        /// <summary>
+        /// Save all currently tracked changes.
+        /// </summary>
+        /// <returns>A completed Task.</returns>
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

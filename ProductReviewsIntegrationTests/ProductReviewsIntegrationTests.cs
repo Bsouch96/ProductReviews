@@ -23,14 +23,21 @@ namespace ProductReviewsIntegrationTests
     public class ProductReviewsIntegrationTests : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
         private readonly HttpClient _client;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configurationSecrets;
+        private readonly IConfiguration _configurationJson;
         private readonly IConfigurationSection _auth0Settings;
 
         public ProductReviewsIntegrationTests(CustomWebApplicationFactory<Startup> factory)
         {
             _client = factory.CreateClient();
 
-            _configuration = new ConfigurationBuilder().AddUserSecrets<ProductReviewsIntegrationTests>().Build();
+            _configurationSecrets = new ConfigurationBuilder()
+                .AddUserSecrets<ProductReviewsIntegrationTests>()
+                .Build();
+
+            _configurationJson = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
 
             _auth0Settings = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
@@ -45,10 +52,19 @@ namespace ProductReviewsIntegrationTests
         private async Task<string> GetAccessToken()
         {
             var auth0Client = new AuthenticationApiClient(_auth0Settings["Domain"]);
+
+            var clientID = _configurationJson["AuthClientID"];
+            if (String.IsNullOrWhiteSpace(clientID))
+                clientID = _configurationSecrets["AuthClientID"];
+
+            var clientSecret = _configurationJson["AuthClientSecret"];
+            if (String.IsNullOrWhiteSpace(clientSecret))
+                clientSecret = _configurationSecrets["AuthClientSecret"];
+
             var tokenRequest = new ClientCredentialsTokenRequest()
             {
-                ClientId = _configuration["AuthClientID"],
-                ClientSecret = _configuration["AuthClientSecret"],
+                ClientId = clientID,
+                ClientSecret = clientSecret,
                 Audience = _auth0Settings["Audience"]
             };
             var tokenResponse = await auth0Client.GetTokenAsync(tokenRequest);

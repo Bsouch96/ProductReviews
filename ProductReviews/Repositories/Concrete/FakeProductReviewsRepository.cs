@@ -1,4 +1,5 @@
-﻿using ProductReviews.DomainModels;
+﻿using ProductReviews.CustomExceptionMiddleware;
+using ProductReviews.DomainModels;
 using ProductReviews.Repositories.Interface;
 using System;
 using System.Collections.Generic;
@@ -26,12 +27,12 @@ namespace ProductReviews.Repositories.Concrete
         public async Task<ProductReviewModel> GetProductReviewAsync(int ID)
         {
             if (ID < 1)
-                throw new ArgumentOutOfRangeException("IDs cannot be less than 0.", nameof(ArgumentOutOfRangeException));
+                throw new ArgumentOutOfRangeException(nameof(ID), "IDs cannot be less than 1.");
 
             ProductReviewModel productReviewModel = _productReviews.FirstOrDefault(d => d.ProductReviewID == ID);
 
             if (productReviewModel == null)
-                throw new ArgumentNullException("The product review used to update cannot be null.", nameof(ArgumentNullException));
+                throw new ResourceNotFoundException("A resource for ID: " + ID + " does not exist.");
 
             ProductReviewModel returnableProductReviewModel = new ProductReviewModel()
             {

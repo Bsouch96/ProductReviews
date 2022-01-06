@@ -127,7 +127,7 @@ namespace ProductReviewsUnitTests
         [InlineData(0)]
         [InlineData(-10)]
         [InlineData(int.MinValue)]
-        public async void GetDeletionRequestAsync_ThrowsArgumentOutOfRangeException(int ID)
+        public async void GetProductReviewAsync_ThrowsArgumentOutOfRangeException(int ID)
         {
             //Arrange
             var dbContextMock = GetDbContext();
@@ -144,7 +144,7 @@ namespace ProductReviewsUnitTests
         [InlineData(1)]
         [InlineData(3)]
         [InlineData(5)]
-        public void GetDeletionRequestAsync_ShouldReturnDeletionRequest(int ID)
+        public void GetProductReviewAsync_ShouldReturnProductReview(int ID)
         {
             //Arrange
             var dbContextMock = GetDbContext();
@@ -167,7 +167,7 @@ namespace ProductReviewsUnitTests
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(int.MaxValue)]
-        public async void GetDeletionRequestAsync_ThrowsResourceNotFoundException(int ID)
+        public async void GetProductReviewAsync_ThrowsResourceNotFoundException(int ID)
         {
             //Arrange
             var dbContextMock = GetDbContext();
@@ -181,7 +181,7 @@ namespace ProductReviewsUnitTests
         }
 
         [Fact]
-        public void CreateDeletionRequest_ThrowsArgumentNullException()
+        public void CreateProductReview_ThrowsArgumentNullException()
         {
             //Arrange
             var dbContextMock = GetDbContext();
@@ -197,7 +197,7 @@ namespace ProductReviewsUnitTests
 
         [Theory, MemberData(nameof(ProductReviewModelObjects.GetProductReviewModelCreateObjects),
                  MemberType = typeof(ProductReviewModelObjects))]
-        public async void CreateDeletionRequest_ShouldReturnCreatedDeletionRequest(string ProductReviewHeader, string ProductReviewContent,
+        public async void CreateProductReview_ShouldReturnCreatedProductReview(string ProductReviewHeader, string ProductReviewContent,
             DateTime ProductReviewDate, int ProductID, bool ProductReviewIsHidden)
         {
             //Arrange
@@ -231,13 +231,13 @@ namespace ProductReviewsUnitTests
 
             //Assert
             var actionResult = Assert.IsType<ProductReviewModel>(result);
-            ProductReviewModel deletionRequestModelResult = Assert.IsAssignableFrom<ProductReviewModel>(actionResult);
-            deletionRequestModelResult.Should().NotBeNull();
-            deletionRequestModelResult.Should().BeEquivalentTo(expectedProductReviewModel);
+            ProductReviewModel ProductReviewModelResult = Assert.IsAssignableFrom<ProductReviewModel>(actionResult);
+            ProductReviewModelResult.Should().NotBeNull();
+            ProductReviewModelResult.Should().BeEquivalentTo(expectedProductReviewModel);
         }
 
         [Fact]
-        public void UpdateDeletionRequest_ThrowsArgumentNullException()
+        public void UpdateProductReview_ThrowsArgumentNullException()
         {
             //Arrange
             var dbContextMock = GetDbContext();
@@ -253,7 +253,7 @@ namespace ProductReviewsUnitTests
 
         [Theory, MemberData(nameof(ProductReviewModelObjects.GetProductReviewModelUpdateObjects),
                  MemberType = typeof(ProductReviewModelObjects))]
-        public void UpdateDeletionRequest_ShouldUpdateDeletionRequest(string ProductReviewHeader, string ProductReviewContent,
+        public void UpdateProductReview_ShouldUpdateProductReview(string ProductReviewHeader, string ProductReviewContent,
             DateTime ProductReviewDate, int ProductID, bool ProductReviewIsHidden, int ProductReviewID)
         {
             //Arrange

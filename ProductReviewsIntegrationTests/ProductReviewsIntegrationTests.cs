@@ -26,7 +26,7 @@ namespace ProductReviewsIntegrationTests
         private readonly IConfiguration _configurationSecrets;
         private readonly IConfiguration _configurationJson;
         private readonly IConfigurationSection _auth0Settings;
-
+        private readonly string _accessToken;
         public ProductReviewsIntegrationTests(CustomWebApplicationFactory<Startup> factory)
         {
             _client = factory.CreateClient();
@@ -43,6 +43,8 @@ namespace ProductReviewsIntegrationTests
                 .AddJsonFile("appsettings.json")
                 .Build()
                 .GetSection("Auth0");
+
+            _accessToken = GetAccessToken().Result;
         }
 
         /// <summary>
@@ -120,7 +122,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, "api/ProductReviews");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -175,7 +177,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/ProductReviews/Visible/{ID}");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -230,7 +232,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/ProductReviews/{ID}");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -250,7 +252,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/ProductReviews/{ID}");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -271,7 +273,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/ProductReviews/{ID}");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             string errorMessage = "IDs cannot be less than 1. (Parameter 'ID')";
 
@@ -294,7 +296,7 @@ namespace ProductReviewsIntegrationTests
         {
             //Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, $"api/ProductReviews/{ID}");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             string errorMessage = $"A resource for ID: {ID} does not exist.";
 
@@ -377,7 +379,7 @@ namespace ProductReviewsIntegrationTests
 
             var request = new HttpRequestMessage(HttpMethod.Post, "api/ProductReviews/Create");
             request.Content = new StringContent(JsonConvert.SerializeObject(productReviewCreateDTO), Encoding.UTF8, "application/json");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -404,7 +406,7 @@ namespace ProductReviewsIntegrationTests
 
             var request = new HttpRequestMessage(HttpMethod.Post, "api/ProductReviews/Create");
             request.Content = new StringContent(JsonConvert.SerializeObject(productReviewCreateDTO), Encoding.UTF8, "application/json");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -475,7 +477,7 @@ namespace ProductReviewsIntegrationTests
             jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
             var request = new HttpRequestMessage(HttpMethod.Patch, $"api/ProductReviews/Visibility/{ProductReviewID}");
             request.Content = new StringContent(JsonConvert.SerializeObject(jsonPatchDocument), Encoding.UTF8, "application/json");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             //Act
@@ -500,7 +502,7 @@ namespace ProductReviewsIntegrationTests
             jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
             var request = new HttpRequestMessage(HttpMethod.Patch, $"api/ProductReviews/Visibility/{ProductReviewID}");
             request.Content = new StringContent(JsonConvert.SerializeObject(jsonPatchDocument), Encoding.UTF8, "application/json");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             string errorMessage = "IDs cannot be less than 1. (Parameter 'ID')";
 
@@ -530,7 +532,7 @@ namespace ProductReviewsIntegrationTests
             jsonPatchDocument.Replace<bool>(dr => dr.ProductReviewIsHidden, ProductReviewIsHidden);
             var request = new HttpRequestMessage(HttpMethod.Patch, $"api/ProductReviews/Visibility/{ProductReviewID}");
             request.Content = new StringContent(JsonConvert.SerializeObject(jsonPatchDocument), Encoding.UTF8, "application/json");
-            var accessToken = await GetAccessToken();
+            var accessToken = _accessToken;
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             string errorMessage = $"A resource for ID: {ProductReviewID} does not exist."; ;
 
